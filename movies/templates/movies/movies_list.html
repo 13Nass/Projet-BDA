@@ -1,0 +1,60 @@
+{% extends "movies/base.html" %}
+{% block content %}
+<h1 class="mb-3">Liste des films</h1>
+
+<form class="row g-2 mb-3" method="get">
+  <div class="col-md-3">
+    <select class="form-select" name="genre">
+      <option value="">Genre (tous)</option>
+      {% for g in genres %}
+        <option value="{{ g }}" {% if filters.genre == g %}selected{% endif %}>{{ g }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><input class="form-control" name="year_min" placeholder="Année min" value="{{ filters.year_min|default:'' }}"></div>
+  <div class="col-md-2"><input class="form-control" name="year_max" placeholder="Année max" value="{{ filters.year_max|default:'' }}"></div>
+  <div class="col-md-2"><input class="form-control" name="rating_min" placeholder="Note min" value="{{ filters.rating_min|default:'' }}"></div>
+  <div class="col-md-3">
+    <select class="form-select" name="sort">
+      <option value="title_asc"  {% if filters.sort == "title_asc" %}selected{% endif %}>Titre (ASC)</option>
+      <option value="title_desc" {% if filters.sort == "title_desc" %}selected{% endif %}>Titre (DESC)</option>
+      <option value="year_asc"   {% if filters.sort == "year_asc" %}selected{% endif %}>Année (ASC)</option>
+      <option value="year_desc"  {% if filters.sort == "year_desc" %}selected{% endif %}>Année (DESC)</option>
+      <option value="rating_asc" {% if filters.sort == "rating_asc" %}selected{% endif %}>Note (ASC)</option>
+      <option value="rating_desc"{% if filters.sort == "rating_desc" %}selected{% endif %}>Note (DESC)</option>
+    </select>
+  </div>
+  <div class="col-12">
+    <button class="btn btn-primary">Appliquer</button>
+    <a class="btn btn-outline-secondary" href="/movies/">Reset</a>
+  </div>
+</form>
+
+<p class="text-muted">{{ total }} résultats — page {{ page }}/{{ nb_pages }}</p>
+
+<div class="list-group mb-3">
+  {% for m in movies %}
+  <a class="list-group-item list-group-item-action" href="/movies/{{ m.movie_id }}/">
+    <div class="d-flex justify-content-between">
+      <div>
+        <div class="fw-semibold">{{ m.title }}</div>
+        <div class="text-muted small">{{ m.year }} — {{ m.num_votes|default:"?" }} votes</div>
+      </div>
+      <span class="badge bg-primary">{{ m.average_rating|default:"?" }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<nav>
+  <ul class="pagination">
+    {% if page > 1 %}
+    <li class="page-item"><a class="page-link" href="?page={{ page|add:-1 }}&genre={{ filters.genre|default:'' }}&year_min={{ filters.year_min|default:'' }}&year_max={{ filters.year_max|default:'' }}&rating_min={{ filters.rating_min|default:'' }}&sort={{ filters.sort }}">←</a></li>
+    {% endif %}
+    <li class="page-item disabled"><span class="page-link">Page {{ page }}</span></li>
+    {% if page < nb_pages %}
+    <li class="page-item"><a class="page-link" href="?page={{ page|add:1 }}&genre={{ filters.genre|default:'' }}&year_min={{ filters.year_min|default:'' }}&year_max={{ filters.year_max|default:'' }}&rating_min={{ filters.rating_min|default:'' }}&sort={{ filters.sort }}">→</a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endblock %}
