@@ -1,0 +1,10 @@
+query,mongo_ms_avg,rows
+Q1_filmography,27016.301,52
+Q2_topN,473310.231,10
+Q3_multiroles,1084336.526,50
+Q4_collab,8008.577,40
+Q5_popular,14690.297,1
+Q6_decades,258.788,5
+Q7_top3genre,31058.103,71
+Q8_breakthrough,190020.472,50
+Q9_free,17207.188,10

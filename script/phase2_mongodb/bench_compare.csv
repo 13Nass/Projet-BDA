@@ -1,0 +1,10 @@
+query,sqlite_ms_avg,mongo_ms_avg,rows_sqlite,rows_mongo,sqlite_indexes
+Q1 - Filmographie (Tom Hanks),915.415,26585.495,56,56,0
+Q2 - Top 50 Drama 1990-2020,24.244,6769.571,50,50,0
+Q3 - Acteurs multi-rôles,1409.008,1085224.234,4731,4731,0
+Q4 - Collaborations (Tom Hanks),1411.421,7667.357,40,40,0
+Q5 - Genres populaires,216.16,14294.474,1,1,0
+Q6 - Carrière (Tom Hanks),1577.097,270.477,5,5,0
+Q7 - Top 3 par genre,895.568,33825.347,71,71,0
+Q8 - Carrières boostées,9777.033,144959.101,4414,4414,0
+Q9 - Acteurs polyvalents,5004.532,33068.522,50,50,0

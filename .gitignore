@@ -1,0 +1,10 @@
+data/mongo
+data/imdb.db
+venv
+scripts/phase1_mongodb/pycache/
+scripts/phase2_mongodb/pycache/
+scripts/phase3_mongodb/pycache/node_modules/
+.venv/
+*.zip
+*.db
+data/
