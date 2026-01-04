@@ -13,17 +13,13 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from django.urls import path
-from . import views
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 IMDB_SQLITE_PATH = "C:/Users/bendr/OneDrive/Documents/Polytech/S7/BDA/data/imdb.db"
 
-MONGO_URI = os.getenv(
-    "MONGO_URI",
-    "mongodb://127.0.0.1:27017,127.0.0.1:27018,127.0.0.1:27019/?replicaSet=rs0"
-)
-MONGO_DB_NAME = os.getenv("cineexplorer_flat", "cineexplorer_flat")  
+MONGO_URI = "mongodb://127.0.0.1:27017"
+MONGO_DB_NAME = "cineexplorer_flat"
 
 
 # Quick-start development settings - unsuitable for production
@@ -127,13 +123,4 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-#Website structure (by me :)) 
-
-urlpatterns = [
-    path("", views.home, name="home"),
-    path("movies/", views.movies_list, name="movies_list"),
-    path("movies/<str:movie_id>/", views.movie_detail, name="movie_detail"),
-    path("search/", views.search, name="search"),
-    path("stats/", views.stats, name="stats"),
-]
 
