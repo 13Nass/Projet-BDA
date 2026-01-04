@@ -1,0 +1,32 @@
+{% extends "movies/base.html" %}
+{% block content %}
+<h1>Statistiques</h1>
+
+<h3>Films par genre (top 20)</h3>
+<ul>
+  {% for r in by_genre %}
+    <li>{{ r.genre }} — {{ r.n }}</li>
+  {% endfor %}
+</ul>
+
+<h3>Films par décennie</h3>
+<ul>
+  {% for r in by_decade %}
+    <li>{{ r.decade }} — {{ r.n }}</li>
+  {% endfor %}
+</ul>
+
+<h3>Distribution des notes</h3>
+<ul>
+  {% for r in ratings_hist %}
+    <li>{{ r.bin }} — {{ r.n }}</li>
+  {% endfor %}
+</ul>
+
+<h3>Top 10 acteurs prolifiques</h3>
+<ul>
+  {% for r in top_actors %}
+    <li>{{ r.name }} — {{ r.n }} films</li>
+  {% endfor %}
+</ul>
+{% endblock %}
