@@ -1,0 +1,40 @@
+{% extends "movies/base.html" %}
+{% block content %}
+<h1 class="mb-1">{{ movie.title }}</h1>
+<div class="text-muted mb-3">
+  {{ movie.year }} • {{ movie.runtime }} min • Note: {{ movie.rating.average }} ({{ movie.rating.votes }} votes)
+</div>
+
+<div class="mb-3">
+  <span class="fw-semibold">Genres :</span>
+  {% for g in movie.genres %}<span class="badge bg-secondary">{{ g }}</span>{% endfor %}
+</div>
+
+<h3>Réalisateurs</h3>
+<ul>
+  {% for d in movie.directors %}
+    <li>{{ d.name }}</li>
+  {% endfor %}
+</ul>
+
+<h3>Casting</h3>
+<ul>
+  {% for c in movie.cast %}
+    <li><b>{{ c.name }}</b> — {{ c.characters|join:", " }}</li>
+  {% endfor %}
+</ul>
+
+<h3>Scénaristes</h3>
+<ul>
+  {% for w in movie.writers %}
+    <li>{{ w.name }} <span class="text-muted">({{ w.category }})</span></li>
+  {% endfor %}
+</ul>
+
+<h3>Titres alternatifs</h3>
+<ul>
+  {% for t in movie.titles %}
+    <li>{{ t.region }} — {{ t.title }}</li>
+  {% endfor %}
+</ul>
+{% endblock %}
