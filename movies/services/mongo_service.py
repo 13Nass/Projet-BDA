@@ -32,3 +32,14 @@ def all_collection_counts(limit: int = 20) -> dict:
 def hello_info():
     # utile pour rapport : prouver primary/replica
     return get_client().admin.command("hello")
+
+def mongo():
+    global _client
+    if _client is None:
+        _client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=3000)
+    return _client[settings.MONGO_DB]
+
+def get_movie_complete(movie_id: str):
+    db = mongo()
+    return db["movies_complete"].find_one({"_id": movie_id})
+

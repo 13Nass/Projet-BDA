@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from django.urls import path
+from . import views
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -124,3 +126,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+#Website structure (by me :)) 
+
+urlpatterns = [
+    path("", views.home, name="home"),
+    path("movies/", views.movies_list, name="movies_list"),
+    path("movies/<str:movie_id>/", views.movie_detail, name="movie_detail"),
+    path("search/", views.search, name="search"),
+    path("stats/", views.stats, name="stats"),
+]
+
