@@ -6,7 +6,7 @@
   <h1 class="text-3xl font-bold mb-6 glow">🎬 Liste des films</h1>
 
   <!-- Filtres -->
-  <form method="get" class="mb-10 bg-white/10 p-5 rounded-2xl shadow-lg flex flex-wrap gap-4 items-center backdrop-blur-md">
+  <form method="get" class="mb-10 bg-white/10 p-5 rounded-2xl shadow-lg flex flex-wrap gap-4 items-center backdrop-blur-md" onsubmit="showLoading()">
     <div>
       <label class="block text-sm text-gray-300 mb-1">Année min</label>
       <input type="number" name="year_min" value="{{ request.GET.year_min }}" placeholder="1900"
@@ -34,7 +34,7 @@
   </form>
 
   <!-- Résultats -->
-  <p class="text-gray-400 mb-5">{{ movies|length }} résultats — page {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</p>
+  <p class="text-gray-400 mb-5">{{ total }} résultats — page {{ page }}/{% widthratio total 24 1 %}</p>
 
   <!-- Grille de films -->
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
@@ -55,17 +55,25 @@
   </div>
 
   <!-- Pagination -->
-  {% if page_obj.has_other_pages %}
-  <div class="flex justify-center mt-10 space-x-4">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white/10 rounded-md text-gray-300 hover:text-white">← Précédent</a>
+  {% with total_pages=total|add:23|divisibleby:24 %}
+    {% if total > 24 %}
+    <div class="flex justify-center mt-10 space-x-4">
+      {% if page > 1 %}
+        <a href="?page={{ page|add:'-1' }}{% if year_min %}&year_min={{ year_min }}{% endif %}{% if year_max %}&year_max={{ year_max }}{% endif %}{% if rating_min %}&rating_min={{ rating_min }}{% endif %}" class="px-4 py-2 bg-white/10 rounded-md text-gray-300 hover:text-white">← Précédent</a>
+      {% endif %}
+      <span class="px-4 py-2 text-white/70">Page {{ page }}</span>
+      {% if movies|length == 24 %}
+        <a href="?page={{ page|add:'1' }}{% if year_min %}&year_min={{ year_min }}{% endif %}{% if year_max %}&year_max={{ year_max }}{% endif %}{% if rating_min %}&rating_min={{ rating_min }}{% endif %}" class="px-4 py-2 bg-white/10 rounded-md text-gray-300 hover:text-white">Suivant →</a>
+      {% endif %}
+    </div>
     {% endif %}
-    <span class="px-4 py-2 text-white/70">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white/10 rounded-md text-gray-300 hover:text-white">Suivant →</a>
-    {% endif %}
-  </div>
-  {% endif %}
+  {% endwith %}
 </section>
+
+<script>
+function showLoading() {
+  Toast.info('Filtrage des films...', 10000);
+}
+</script>
 
 {% endblock %}

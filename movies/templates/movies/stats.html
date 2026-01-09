@@ -31,6 +31,25 @@
     </div>
   </header>
 
+  <!-- GRAPHIQUES CHART.JS -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 px-6">
+    <!-- Graphique Genres -->
+    {% if genres %}
+    <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
+      <h2 class="text-xl font-semibold mb-4 text-white">📊 Distribution par Genre</h2>
+      <canvas id="genresChart"></canvas>
+    </div>
+    {% endif %}
+
+    <!-- Graphique Stats Générales -->
+    {% if stats %}
+    <div class="bg-white/10 backdrop-blur-md rounded-lg p-6 border border-white/20">
+      <h2 class="text-xl font-semibold mb-4 text-white">📈 Aperçu Global</h2>
+      <canvas id="statsChart"></canvas>
+    </div>
+    {% endif %}
+  </div>
+
   <div class="grid-2">
     <!-- TOP GENRES -->
     <section class="panel">
@@ -391,5 +410,115 @@
     box-shadow: 0 0 16px rgba(59,130,246,.2);
   }
 </style>
+
+<script>
+// Chart.js - Graphique des genres
+{% if genres %}
+const genresData = {
+  labels: [{% for genre, count in genres %}'{{ genre }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+  datasets: [{
+    label: 'Nombre de films',
+    data: [{% for genre, count in genres %}{{ count }}{% if not forloop.last %},{% endif %}{% endfor %}],
+    backgroundColor: [
+      'rgba(168, 85, 247, 0.8)',
+      'rgba(59, 130, 246, 0.8)',
+      'rgba(34, 197, 94, 0.8)',
+      'rgba(217, 119, 6, 0.8)',
+      'rgba(239, 68, 68, 0.8)',
+      'rgba(236, 72, 153, 0.8)',
+      'rgba(139, 92, 246, 0.8)',
+      'rgba(14, 165, 233, 0.8)',
+      'rgba(34, 197, 94, 0.6)',
+      'rgba(249, 115, 22, 0.8)',
+    ],
+    borderColor: [
+      'rgba(168, 85, 247, 1)',
+      'rgba(59, 130, 246, 1)',
+      'rgba(34, 197, 94, 1)',
+      'rgba(217, 119, 6, 1)',
+      'rgba(239, 68, 68, 1)',
+      'rgba(236, 72, 153, 1)',
+      'rgba(139, 92, 246, 1)',
+      'rgba(14, 165, 233, 1)',
+      'rgba(34, 197, 94, 1)',
+      'rgba(249, 115, 22, 1)',
+    ],
+    borderWidth: 2,
+  }]
+};
+
+const genresCtx = document.getElementById('genresChart');
+if (genresCtx) {
+  new Chart(genresCtx, {
+    type: 'doughnut',
+    data: genresData,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: 'rgba(255, 255, 255, 0.8)', font: { size: 12 } }
+        }
+      }
+    }
+  });
+}
+{% endif %}
+
+// Chart.js - Stats globales
+{% if stats %}
+const statsData = {
+  labels: ['Films', 'Personnes', 'Note Moyenne', 'Votes Moyen'],
+  datasets: [{
+    label: 'Statistiques',
+    data: [
+      {{ stats.total_movies }},
+      {{ stats.total_persons }},
+      {{ stats.avg_rating|default:0 }} * 10,
+      {{ stats.avg_votes|default:0 }} / 1000
+    ],
+    backgroundColor: [
+      'rgba(168, 85, 247, 0.8)',
+      'rgba(59, 130, 246, 0.8)',
+      'rgba(34, 197, 94, 0.8)',
+      'rgba(217, 119, 6, 0.8)'
+    ],
+    borderColor: [
+      'rgba(168, 85, 247, 1)',
+      'rgba(59, 130, 246, 1)',
+      'rgba(34, 197, 94, 1)',
+      'rgba(217, 119, 6, 1)'
+    ],
+    borderWidth: 2,
+  }]
+};
+
+const statsCtx = document.getElementById('statsChart');
+if (statsCtx) {
+  new Chart(statsCtx, {
+    type: 'bar',
+    data: statsData,
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { color: 'rgba(255, 255, 255, 0.8)' }
+        }
+      },
+      scales: {
+        y: {
+          ticks: { color: 'rgba(255, 255, 255, 0.8)' },
+          grid: { color: 'rgba(255, 255, 255, 0.1)' }
+        },
+        x: {
+          ticks: { color: 'rgba(255, 255, 255, 0.8)' },
+          grid: { color: 'rgba(255, 255, 255, 0.1)' }
+        }
+      }
+    }
+  });
+}
+{% endif %}
+</script>
 {% endblock %}
 

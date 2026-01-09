@@ -90,6 +90,7 @@ def list_top_movies(limit: int = 12) -> List[Dict[str, Any]]:
     sql = """
         SELECT
             m.movie_id,
+            m.primary_title AS title,
             m.primary_title,
             m.start_year,
             r.average_rating AS rating,
@@ -128,6 +129,7 @@ def list_recent_movies(limit: int = 12) -> List[Dict[str, Any]]:
     sql = """
         SELECT
             m.movie_id,
+            m.primary_title AS title,
             m.primary_title,
             m.start_year,
             r.average_rating AS rating,
@@ -299,7 +301,7 @@ def search_people(query: str, limit: int = 30) -> List[Dict[str, Any]]:
 def search_all(query: str, limit_movies: int = 20, limit_people: int = 20) -> Dict[str, Any]:
     return {
         "movies": search_movies(query, limit_movies),
-        "people": search_people(query, limit_people),
+        "persons": search_people(query, limit_people),
     }
 
 
@@ -337,6 +339,109 @@ def all_table_counts() -> List[Tuple[str, int]]:
             cnt = conn.execute(f"SELECT COUNT(*) FROM {name}").fetchone()[0]
             out.append((name, int(cnt)))
         return out
+
+
+def list_movies(
+    page: int = 1,
+    page_size: int = 24,
+    order: str = "rating",
+    year_min: Optional[int] = None,
+    year_max: Optional[int] = None,
+    rating_min: Optional[float] = None
+) -> Tuple[List[Dict[str, Any]], int]:
+    """
+    Returns a paginated list of movies with total count and optional filters.
+    order can be: 'rating', 'votes', 'year', 'title'
+    Returns: (movies_list, total_count)
+    """
+    # Map order by to SQL
+    order_by = {
+        "rating": "(r.average_rating IS NULL) ASC, r.average_rating DESC, (r.num_votes IS NULL) ASC, r.num_votes DESC",
+        "votes": "(r.num_votes IS NULL) ASC, r.num_votes DESC",
+        "year": "m.start_year DESC",
+        "title": "m.primary_title ASC",
+    }.get(order, "(r.average_rating IS NULL) ASC, r.average_rating DESC")
+
+    # Build WHERE clause with filters
+    where_conditions = ["m.title_type = 'movie'"]
+    params: List[Any] = []
+
+    if year_min is not None:
+        where_conditions.append("m.start_year >= ?")
+        params.append(year_min)
+    if year_max is not None:
+        where_conditions.append("m.start_year <= ?")
+        params.append(year_max)
+    if rating_min is not None:
+        where_conditions.append("r.average_rating >= ?")
+        params.append(rating_min)
+
+    where_clause = " AND ".join(where_conditions)
+
+    # Get total count
+    count_sql = f"SELECT COUNT(*) FROM movies m LEFT JOIN ratings r ON r.movie_id = m.movie_id WHERE {where_clause}"
+    with _connect() as conn:
+        total = conn.execute(count_sql, params).fetchone()[0]
+
+    # Calculate offset
+    offset = (page - 1) * page_size
+
+    # Fetch paginated results
+    sql = f"""
+        SELECT
+            m.movie_id,
+            m.primary_title AS title,
+            m.primary_title,
+            m.start_year,
+            r.average_rating AS rating,
+            r.average_rating AS average_rating,
+            r.num_votes AS votes,
+            r.num_votes AS num_votes,
+            GROUP_CONCAT(DISTINCT g.genre) AS genres_csv
+        FROM movies m
+        LEFT JOIN ratings r ON r.movie_id = m.movie_id
+        LEFT JOIN genres g ON g.movie_id = m.movie_id
+        WHERE {where_clause}
+        GROUP BY m.movie_id
+        ORDER BY {order_by}
+        LIMIT ? OFFSET ?
+    """
+    # Append pagination params
+    params.append(page_size)
+    params.append(offset)
+    
+    rows = _fetchall(sql, params)
+    for row in rows:
+        row["id"] = row.get("movie_id")
+        genres_csv = row.pop("genres_csv", None)
+        if genres_csv:
+            genres = [g.strip() for g in str(genres_csv).split(",") if g.strip()]
+            row["genres"] = ", ".join(genres)
+        else:
+            row["genres"] = ""
+
+    return rows, total
+
+
+def stats_data() -> Dict[str, Any]:
+    """
+    Récupère statistiques agrégées pour tableau de bord.
+    
+    Requêtes d'agrégation sur tables principales:
+    - COUNT(*): Nombre total films/personnes
+    - AVG(column): Moyennes ratings et votes
+    
+    Retour:
+        Dict avec clés: total_movies, total_persons, avg_rating, avg_votes
+    
+    Note: Pas de cache - données actualisées à chaque requête
+    """
+    return {
+        "total_movies": _fetchone("SELECT COUNT(*) AS cnt FROM movies")["cnt"],
+        "total_persons": _fetchone("SELECT COUNT(*) AS cnt FROM persons")["cnt"],
+        "avg_rating": _fetchone("SELECT AVG(average_rating) AS avg FROM ratings")["avg"],
+        "avg_votes": _fetchone("SELECT AVG(num_votes) AS avg FROM ratings")["avg"],
+    }
 
 
 # Backward-compatible aliases (in case views import these names)

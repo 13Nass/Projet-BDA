@@ -8,6 +8,9 @@
     <!-- Tailwind CSS (CDN) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Favicon -->
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/742/742751.png" />
 
@@ -31,9 +34,89 @@
       .search-box input::placeholder {
           color: rgba(255,255,255,0.6);
       }
+
+      /* Loading Spinner */
+      .spinner {
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top: 4px solid rgba(168, 85, 247, 1);
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      /* Toast Messages */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .toast {
+        background: rgba(25, 20, 50, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 16px 20px;
+        color: white;
+        min-width: 300px;
+        box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .toast.success {
+        border-left: 4px solid rgba(34, 197, 94, 1);
+      }
+
+      .toast.error {
+        border-left: 4px solid rgba(239, 68, 68, 1);
+      }
+
+      .toast.info {
+        border-left: 4px solid rgba(59, 130, 246, 1);
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+
+      .toast.removing {
+        animation: slideOut 0.3s ease;
+      }
     </style>
 </head>
 <body>
+
+  <!-- Toast Container for Messages -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <!-- Header -->
   <header class="nav-blur sticky top-0 z-50 flex justify-between items-center px-8 py-4 shadow-lg">
@@ -67,6 +150,68 @@
   <footer class="text-center py-6 text-sm text-gray-400">
     © 2026 CinéExplorer — Propulsé par <span class="text-purple-400">Django</span> & <span class="text-blue-400">Tailwind</span>
   </footer>
+
+  <script>
+    /**
+     * Système de notifications Toast (notification non-bloquantes)
+     * Supporte: success (vert), error (rouge), info (bleu)
+     * Auto-dismiss après délai configurable
+     */
+    class Toast {
+      /**
+       * Affiche une notification toast avec animation
+       * @param {string} message - Texte à afficher
+       * @param {string} type - Type: 'info'|'success'|'error'
+       * @param {number} duration - Délai avant auto-dismiss (ms)
+       */
+      static show(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;  // Classe CSS avec type
+        
+        // Sélection icône selon type
+        const icon = type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ';
+        toast.innerHTML = `
+          <span style="font-size: 18px; font-weight: bold;">${icon}</span>
+          <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('removing');
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      static success(message, duration = 3000) {
+        this.show(message, 'success', duration);
+      }
+
+      static error(message, duration = 3000) {
+        this.show(message, 'error', duration);
+      }
+
+      static info(message, duration = 3000) {
+        this.show(message, 'info', duration);
+      }
+    }
+
+    // Show loading spinner on form submit
+    document.addEventListener('submit', function(e) {
+      if (e.target.tagName === 'FORM') {
+        Toast.info('Chargement...', 10000);
+      }
+    });
+
+    // Show success message when page loads
+    window.addEventListener('load', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('success')) {
+        Toast.success('Opération réussie!');
+      }
+    });
+  </script>
 
 </body>
 </html>

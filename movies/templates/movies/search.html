@@ -17,8 +17,8 @@
 <div class="search-wrap">
   <div class="search-title">Résultats{% if q %} pour “{{ q }}”{% endif %}</div>
   {% if not q %}
-    <div class="muted">Tape un film ou une personne dans la barre de recherche.</div>
-  {% endif %}
+    <div class="muted">Tape un film ou une personne dans la barre de recherche.</div>  {% else %}
+    <div class="muted">✓ {{ movies|length }} film(s) et {{ persons|length }} personne(s) trouvé(e)s</div>  {% endif %}
 
   <div class="section">
     <h2>🎬 Films <span class="muted">({{ movies|length }})</span></h2>
