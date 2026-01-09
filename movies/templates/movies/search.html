@@ -1,25 +1,64 @@
 {% extends "movies/base.html" %}
 {% block content %}
-<h1>Recherche</h1>
-{% if not q %}<p class="text-muted">Tape une recherche dans la barre du haut.</p>{% endif %}
+<style>
+  .search-page{
+    max-width:1200px;
+    margin:30px auto;
+    padding:0 18px;
+  }
+  h1{
+    font-size:32px;
+    color:rgba(255,255,255,.92);
+    margin-bottom:20px;
+  }
+  .results-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:22px;
+  }
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:22px;
+    padding:16px;
+    transition:transform .2s ease, box-shadow .2s ease;
+    box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 18px 40px rgba(0,0,0,.45);
+  }
+  .card a{
+    color:rgba(255,255,255,.92);
+    text-decoration:none;
+    font-weight:600;
+    display:block;
+    font-size:17px;
+    margin-bottom:4px;
+  }
+  .card small{
+    color:rgba(255,255,255,.65);
+    font-size:13px;
+  }
+</style>
 
-{% if q %}
-<h3 class="mt-3">Films</h3>
-<ul>
-  {% for m in movies %}
-    <li><a href="/movies/{{ m.movie_id }}/">{{ m.title }}</a> ({{ m.year }})</li>
-  {% empty %}
-    <li class="text-muted">Aucun film</li>
-  {% endfor %}
-</ul>
-
-<h3>Personnes</h3>
-<ul>
-  {% for p in people %}
-    <li>{{ p.name }} <span class="text-muted">({{ p.person_id }})</span></li>
-  {% empty %}
-    <li class="text-muted">Aucune personne</li>
-  {% endfor %}
-</ul>
-{% endif %}
+<div class="search-page">
+  <h1>Résultats de recherche</h1>
+  {% if movies %}
+    <div class="results-grid">
+      {% for m in movies %}
+        <div class="card">
+          <a href="{% url 'movie_detail' m.id|default:m.pk|default:m._id %}">
+            {{ m.primary_title|default:m.original_title }}
+          </a>
+          <small>
+            {% if m.start_year %}({{ m.start_year }}){% endif %}
+          </small>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>Aucun film trouvé.</p>
+  {% endif %}
+</div>
 {% endblock %}

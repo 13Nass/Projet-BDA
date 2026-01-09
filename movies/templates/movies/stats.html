@@ -1,32 +1,395 @@
 {% extends "movies/base.html" %}
+{% block title %}Stats — CinéExplorer{% endblock %}
+
 {% block content %}
-<h1>Statistiques</h1>
+<div class="stats-wrap">
+  <header class="stats-hero">
+    <div class="stats-hero__left">
+      <h1 class="stats-title">Statistiques</h1>
+      <p class="stats-subtitle">Un aperçu rapide de ta base : genres, décennies, volumes.</p>
+    </div>
 
-<h3>Films par genre (top 20)</h3>
-<ul>
-  {% for r in by_genre %}
-    <li>{{ r.genre }} — {{ r.n }}</li>
-  {% endfor %}
-</ul>
+    <div class="stats-hero__chips">
+      {% if total_movies %}
+        <div class="chip">
+          <span class="chip__label">Films</span>
+          <span class="chip__value">{{ total_movies }}</span>
+        </div>
+      {% endif %}
+      {% if total_people %}
+        <div class="chip">
+          <span class="chip__label">Personnes</span>
+          <span class="chip__value">{{ total_people }}</span>
+        </div>
+      {% endif %}
+      {% if total_titles %}
+        <div class="chip">
+          <span class="chip__label">Titres</span>
+          <span class="chip__value">{{ total_titles }}</span>
+        </div>
+      {% endif %}
+    </div>
+  </header>
 
-<h3>Films par décennie</h3>
-<ul>
-  {% for r in by_decade %}
-    <li>{{ r.decade }} — {{ r.n }}</li>
-  {% endfor %}
-</ul>
+  <div class="grid-2">
+    <!-- TOP GENRES -->
+    <section class="panel">
+      <div class="panel__head">
+        <h2 class="panel__title">Films par genre</h2>
+        <span class="panel__hint">Top 20</span>
+      </div>
 
-<h3>Distribution des notes</h3>
-<ul>
-  {% for r in ratings_hist %}
-    <li>{{ r.bin }} — {{ r.n }}</li>
-  {% endfor %}
-</ul>
+      {% if top_genres %}
+        {% with rows=top_genres %}
+          <div class="ranklist">
+            {% for genre, count in rows %}
+              <div class="rankrow">
+                <div class="rank">{{ forloop.counter }}</div>
+                <div class="rankrow__main">
+                  <div class="rankrow__label">{{ genre }}</div>
+                  <div class="rankrow__bar">
+                    <span class="barfill" style="--p: {{ forloop.revcounter0|add:1 }};"></span>
+                  </div>
+                </div>
+                <div class="badge">{{ count }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% elif genres_top %}
+        {% with rows=genres_top %}
+          <div class="ranklist">
+            {% for genre, count in rows %}
+              <div class="rankrow">
+                <div class="rank">{{ forloop.counter }}</div>
+                <div class="rankrow__main">
+                  <div class="rankrow__label">{{ genre }}</div>
+                  <div class="rankrow__bar">
+                    <span class="barfill" style="--p: {{ forloop.revcounter0|add:1 }};"></span>
+                  </div>
+                </div>
+                <div class="badge">{{ count }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% elif genres %}
+        {% with rows=genres %}
+          <div class="ranklist">
+            {% for genre, count in rows %}
+              <div class="rankrow">
+                <div class="rank">{{ forloop.counter }}</div>
+                <div class="rankrow__main">
+                  <div class="rankrow__label">{{ genre }}</div>
+                  <div class="rankrow__bar">
+                    <span class="barfill" style="--p: {{ forloop.revcounter0|add:1 }};"></span>
+                  </div>
+                </div>
+                <div class="badge">{{ count }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% else %}
+        <p class="empty">Aucune donnée “genres” trouvée dans le context.</p>
+      {% endif %}
+    </section>
 
-<h3>Top 10 acteurs prolifiques</h3>
-<ul>
-  {% for r in top_actors %}
-    <li>{{ r.name }} — {{ r.n }} films</li>
-  {% endfor %}
-</ul>
+    <!-- DECADES -->
+    <section class="panel">
+      <div class="panel__head">
+        <h2 class="panel__title">Films par décennie</h2>
+        <span class="panel__hint">Distribution</span>
+      </div>
+
+      {% if decades %}
+        {% with rows=decades %}
+          <div class="decades">
+            {% for decade, count in rows %}
+              <div class="decade">
+                <div class="decade__left">
+                  <div class="dot"></div>
+                  <div class="decade__label">{{ decade }}s</div>
+                </div>
+                <div class="decade__right">
+                  <div class="mini-bar">
+                    <span class="mini-fill" style="--i: {{ forloop.counter }};"></span>
+                  </div>
+                  <div class="badge badge--soft">{{ count }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% elif by_decade %}
+        {% with rows=by_decade %}
+          <div class="decades">
+            {% for decade, count in rows %}
+              <div class="decade">
+                <div class="decade__left">
+                  <div class="dot"></div>
+                  <div class="decade__label">{{ decade }}s</div>
+                </div>
+                <div class="decade__right">
+                  <div class="mini-bar">
+                    <span class="mini-fill" style="--i: {{ forloop.counter }};"></span>
+                  </div>
+                  <div class="badge badge--soft">{{ count }}</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endwith %}
+      {% else %}
+        <p class="empty">Aucune donnée “décennies” trouvée dans le context.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+
+<style>
+  /* --- Layout --- */
+  .stats-wrap{
+    width:min(1200px, calc(100% - 48px));
+    margin: 24px auto 64px;
+  }
+  .grid-2{
+    display:grid;
+    grid-template-columns: 1.25fr .9fr;
+    gap: 18px;
+  }
+  @media (max-width: 980px){
+    .grid-2{ grid-template-columns: 1fr; }
+  }
+
+  /* --- Hero --- */
+  .stats-hero{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    padding: 18px 18px 22px;
+    border-radius: 22px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    backdrop-filter: blur(10px);
+    position:relative;
+    overflow:hidden;
+    margin-bottom: 18px;
+  }
+  .stats-hero:before{
+    content:"";
+    position:absolute; inset:-120px -120px auto auto;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle at 30% 30%, rgba(168,85,247,.55), transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(59,130,246,.45), transparent 60%);
+    filter: blur(10px);
+    opacity:.9;
+    pointer-events:none;
+  }
+  .stats-title{
+    margin:0;
+    font-size: 34px;
+    letter-spacing:.2px;
+    color:#e9e9ff;
+    text-shadow: 0 0 14px rgba(168,85,247,.35);
+  }
+  .stats-subtitle{
+    margin:6px 0 0;
+    color: rgba(255,255,255,.68);
+    font-size: 14px;
+  }
+  .stats-hero__chips{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .chip{
+    padding:10px 12px;
+    border-radius: 16px;
+    background: rgba(10,12,22,.45);
+    border: 1px solid rgba(255,255,255,.12);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.18);
+    min-width: 120px;
+  }
+  .chip__label{
+    display:block;
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+  }
+  .chip__value{
+    display:block;
+    margin-top:2px;
+    font-size: 18px;
+    font-weight: 700;
+    color:#fff;
+  }
+
+  /* --- Panel --- */
+  .panel{
+    padding: 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,.06);
+    border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    backdrop-filter: blur(10px);
+    position:relative;
+    overflow:hidden;
+  }
+  .panel:after{
+    content:"";
+    position:absolute; inset:auto -40px -40px auto;
+    width:220px; height:220px;
+    background: radial-gradient(circle at 30% 30%, rgba(59,130,246,.22), transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(168,85,247,.22), transparent 60%);
+    filter: blur(10px);
+    pointer-events:none;
+  }
+  .panel__head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .panel__title{
+    margin:0;
+    color:#f1f1ff;
+    font-size: 16px;
+    letter-spacing:.2px;
+  }
+  .panel__hint{
+    font-size: 12px;
+    color: rgba(255,255,255,.55);
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(10,12,22,.35);
+  }
+  .empty{
+    color: rgba(255,255,255,.65);
+    margin: 12px 0 0;
+  }
+
+  /* --- Rank list --- */
+  .ranklist{ display:flex; flex-direction:column; gap:10px; }
+  .rankrow{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding: 10px;
+    border-radius: 16px;
+    background: rgba(10,12,22,.35);
+    border: 1px solid rgba(255,255,255,.10);
+  }
+  .rank{
+    width:34px; height:34px;
+    border-radius: 12px;
+    display:grid; place-items:center;
+    color:#fff;
+    font-weight:800;
+    background: linear-gradient(135deg, rgba(168,85,247,.75), rgba(59,130,246,.65));
+    box-shadow: 0 10px 25px rgba(0,0,0,.35);
+    flex: 0 0 auto;
+  }
+  .rankrow__main{ flex:1 1 auto; min-width: 0; }
+  .rankrow__label{
+    color:#fff;
+    font-weight: 650;
+    font-size: 14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .rankrow__bar{
+    margin-top:8px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.10);
+    overflow:hidden;
+    position:relative;
+  }
+  /* Pas une vraie proportion (sans max), mais un “feel” visuel top->bas */
+  .barfill{
+    display:block;
+    height:100%;
+    width: calc(20% + (var(--p) * 4%));
+    max-width: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(168,85,247,.95), rgba(59,130,246,.85));
+    box-shadow: 0 0 18px rgba(168,85,247,.25);
+  }
+
+  .badge{
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: rgba(255,255,255,.9);
+    font-weight: 700;
+    font-size: 12px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(255,255,255,.08);
+  }
+  .badge--soft{
+    background: rgba(10,12,22,.25);
+  }
+
+  /* --- Decades --- */
+  .decades{ display:flex; flex-direction:column; gap:10px; }
+  .decade{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding: 10px;
+    border-radius: 16px;
+    background: rgba(10,12,22,.35);
+    border: 1px solid rgba(255,255,255,.10);
+  }
+  .decade__left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width: 0;
+  }
+  .dot{
+    width:10px; height:10px; border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, rgba(168,85,247,1), rgba(59,130,246,1));
+    box-shadow: 0 0 14px rgba(168,85,247,.35);
+    flex: 0 0 auto;
+  }
+  .decade__label{
+    color:#fff;
+    font-weight: 650;
+    font-size: 14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .decade__right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex: 0 0 auto;
+  }
+  .mini-bar{
+    width: 120px;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.10);
+    overflow:hidden;
+  }
+  .mini-fill{
+    display:block;
+    height:100%;
+    width: calc(18% + (var(--i) * 2.5%));
+    max-width:100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(59,130,246,.85), rgba(168,85,247,.85));
+    box-shadow: 0 0 16px rgba(59,130,246,.2);
+  }
+</style>
 {% endblock %}
+

@@ -1,40 +1,518 @@
+{# movies/templates/movies/movie_detail.html #}
 {% extends "movies/base.html" %}
+
 {% block content %}
-<h1 class="mb-1">{{ movie.title }}</h1>
-<div class="text-muted mb-3">
-  {{ movie.year }} • {{ movie.runtime }} min • Note: {{ movie.rating.average }} ({{ movie.rating.votes }} votes)
+<style>
+  /* ========= Movie detail (Arcane UI) ========= */
+  .movie-wrap{
+    max-width: 1180px;
+    margin: 28px auto 64px;
+    padding: 0 18px;
+  }
+
+  .movie-hero{
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,.10);
+    background:
+      radial-gradient(1200px 500px at 15% 0%, rgba(120,80,255,.35), transparent 60%),
+      radial-gradient(900px 420px at 85% 10%, rgba(70,170,255,.22), transparent 65%),
+      linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    box-shadow:
+      0 30px 70px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.08);
+    padding: 26px;
+  }
+
+  .movie-hero::before{
+    content:"";
+    position:absolute; inset:-2px;
+    background:
+      radial-gradient(900px 300px at 20% 10%, rgba(170,120,255,.22), transparent 60%),
+      radial-gradient(700px 300px at 80% 30%, rgba(90,180,255,.16), transparent 60%);
+    filter: blur(2px);
+    opacity: .8;
+    pointer-events:none;
+  }
+
+  .movie-hero::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.08) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 60%, rgba(255,255,255,.06) 0 1px, transparent 2px),
+      radial-gradient(circle at 50% 20%, rgba(255,255,255,.05) 0 1px, transparent 2px);
+    background-size: 220px 220px, 260px 260px, 300px 300px;
+    opacity:.35;
+    pointer-events:none;
+    animation: drift 18s linear infinite;
+  }
+
+  @keyframes drift{
+    from { transform: translate3d(0,0,0); }
+    to   { transform: translate3d(-80px, 40px, 0); }
+  }
+
+  .hero-grid{
+    position: relative;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    align-items: start;
+    z-index: 1;
+  }
+
+  .poster{
+    width: 220px;
+    aspect-ratio: 2/3;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,.14);
+    background:
+      radial-gradient(220px 220px at 30% 25%, rgba(140,100,255,.45), rgba(20,20,35,.55)),
+      linear-gradient(145deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+    box-shadow: 0 18px 45px rgba(0,0,0,.55);
+    position: relative;
+    overflow: hidden;
+  }
+  .poster .poster-mark{
+    position:absolute; inset:0;
+    display:grid; place-items:center;
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: -2px;
+    color: rgba(255,255,255,.22);
+    text-shadow: 0 12px 30px rgba(0,0,0,.55);
+    user-select:none;
+  }
+  .poster::after{
+    content:"";
+    position:absolute; inset:-60px;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.14), transparent 55%);
+    transform: rotate(18deg);
+    opacity:.7;
+  }
+
+  .hero-title{
+    margin: 2px 0 6px;
+    font-size: 44px;
+    line-height: 1.05;
+    letter-spacing: -1px;
+    color: rgba(255,255,255,.92);
+    text-shadow: 0 18px 40px rgba(0,0,0,.45);
+  }
+
+  .hero-sub{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items:center;
+    margin: 10px 0 14px;
+    color: rgba(255,255,255,.78);
+    font-size: 14px;
+  }
+
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(0,0,0,.18);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(8px);
+  }
+
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 8px;
+    margin: 10px 0 16px;
+  }
+  .chip{
+    padding: 7px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+    color: rgba(255,255,255,.80);
+    font-size: 13px;
+  }
+
+  .actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(0,0,0,.18);
+    color: rgba(255,255,255,.9);
+    text-decoration:none;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    box-shadow: 0 10px 24px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(8px);
+  }
+  .btn:hover{
+    transform: translateY(-1px);
+    background: rgba(0,0,0,.26);
+    box-shadow: 0 14px 34px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .btn.primary{
+    background: linear-gradient(90deg, rgba(120,80,255,.55), rgba(80,160,255,.45));
+    border-color: rgba(255,255,255,.18);
+  }
+
+  .rating{
+    display:flex;
+    gap: 12px;
+    align-items:center;
+    margin-top: 6px;
+  }
+  .score{
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+    min-width: 110px;
+  }
+  .score .value{
+    font-size: 26px;
+    font-weight: 800;
+    color: rgba(255,255,255,.95);
+    letter-spacing:-.5px;
+  }
+  .score .hint{
+    font-size: 12px;
+    color: rgba(255,255,255,.65);
+  }
+
+  .meter{
+    flex: 1;
+    height: 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.05);
+    overflow:hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .meter > span{
+    display:block;
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(120,80,255,.85), rgba(80,170,255,.85));
+    box-shadow: 0 0 22px rgba(120,80,255,.35);
+    transition: width .6s ease;
+  }
+
+  .movie-body{
+    margin-top: 18px;
+    display:grid;
+    grid-template-columns: 1.2fr .8fr;
+    gap: 16px;
+  }
+
+  .card{
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    box-shadow: 0 22px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(10px);
+    overflow:hidden;
+  }
+  .card .head{
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+  }
+  .card .head h2{
+    margin:0;
+    font-size: 18px;
+    color: rgba(255,255,255,.92);
+  }
+  .card .body{
+    padding: 16px 18px;
+    color: rgba(255,255,255,.78);
+  }
+
+  .list{
+    display:grid;
+    gap: 10px;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+  .list li{
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.14);
+  }
+
+  details.more{
+    margin-top: 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(0,0,0,.12);
+    overflow:hidden;
+  }
+  details.more summary{
+    cursor:pointer;
+    padding: 10px 12px;
+    color: rgba(255,255,255,.85);
+    user-select:none;
+  }
+  details.more .inner{
+    padding: 10px 12px 12px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+
+  .kv{
+    display:grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px 12px;
+    align-items:start;
+  }
+  .k{
+    color: rgba(255,255,255,.60);
+    font-size: 13px;
+  }
+  .v{
+    color: rgba(255,255,255,.84);
+    font-size: 14px;
+    overflow-wrap:anywhere;
+  }
+
+  .muted{ color: rgba(255,255,255,.55); }
+
+  @media (max-width: 980px){
+    .hero-grid{ grid-template-columns: 1fr; }
+    .poster{ width: 180px; }
+    .movie-body{ grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="movie-wrap">
+
+  <section class="movie-hero">
+    <div class="hero-grid">
+      <div class="poster">
+        <div class="poster-mark">
+          {% if movie.primary_title %}
+            {{ movie.primary_title|slice:":1" }}
+          {% elif movie.original_title %}
+            {{ movie.original_title|slice:":1" }}
+          {% else %}
+            🎬
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <h1 class="hero-title">
+          {{ movie.primary_title|default:movie.original_title|default:"Film" }}
+        </h1>
+
+        <div class="hero-sub">
+          <span class="pill">ID : <strong>{{ movie.id|default:movie.pk|default:"—" }}</strong></span>
+          {% if movie.start_year %}<span class="pill">📅 {{ movie.start_year }}</span>{% endif %}
+          {% if movie.runtime_minutes %}<span class="pill">⏱️ {{ movie.runtime_minutes }} min</span>{% endif %}
+          {% if movie.title_type %}<span class="pill">🎞️ {{ movie.title_type }}</span>{% endif %}
+          {% if movie.is_adult is not None %}<span class="pill">{% if movie.is_adult %}🔞 Adult{% else %}✅ Tout public{% endif %}</span>{% endif %}
+        </div>
+
+        <div class="rating">
+          <div class="score">
+            <div class="value">
+              {% if movie.avg_rating %}{{ movie.avg_rating|floatformat:1 }}{% else %}—{% endif %}/10
+            </div>
+            <div class="hint">
+              {% if movie.num_votes %}{{ movie.num_votes }} votes{% else %}votes inconnus{% endif %}
+            </div>
+          </div>
+
+          <div class="meter" data-rating="{% if movie.avg_rating %}{{ movie.avg_rating }}{% else %}0{% endif %}">
+            <span></span>
+          </div>
+        </div>
+
+        <div class="chips">
+          {% if movie.genres %}
+            {% for g in movie.genres %}
+              <span class="chip">{{ g }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="chip muted">Genres non renseignés</span>
+          {% endif %}
+        </div>
+
+        <div class="actions">
+          <a class="btn" href="{% url 'movies_list' %}">← Retour aux films</a>
+          {% if movie.id %}
+            <a class="btn primary" target="_blank" rel="noopener"
+               href="https://www.imdb.com/title/{{ movie.id|default:movie.pk}}/">
+              Ouvrir sur IMDb
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="movie-body">
+
+    <div class="card">
+      <div class="head">
+        <h2>Crédits</h2>
+        <span class="pill">Focus</span>
+      </div>
+      <div class="body">
+        <div class="kv">
+          <div class="k">Titre original</div>
+          <div class="v">{{ movie.original_title|default:"—" }}</div>
+
+          <div class="k">Titre principal</div>
+          <div class="v">{{ movie.primary_title|default:"—" }}</div>
+
+          <div class="k">Réalisateurs</div>
+          <div class="v">
+            {% if movie.directors %}
+              <ul class="list">
+                {% for d in movie.directors|slice:":8" %}
+                  <li>{{ d }}</li>
+                {% endfor %}
+              </ul>
+              {% if movie.directors|length > 8 %}
+                <details class="more">
+                  <summary>Voir tous les réalisateurs</summary>
+                  <div class="inner">
+                    <ul class="list">
+                      {% for d in movie.directors|slice:"8:" %}
+                        <li>{{ d }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </details>
+              {% endif %}
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </div>
+
+          <div class="k">Scénaristes</div>
+          <div class="v">
+            {% if movie.writers %}
+              <ul class="list">
+                {% for w in movie.writers|slice:":8" %}
+                  <li>{{ w }}</li>
+                {% endfor %}
+              </ul>
+              {% if movie.writers|length > 8 %}
+                <details class="more">
+                  <summary>Voir tous les scénaristes</summary>
+                  <div class="inner">
+                    <ul class="list">
+                      {% for w in movie.writers|slice:"8:" %}
+                        <li>{{ w }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </details>
+              {% endif %}
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h2>Casting</h2>
+        <span class="pill">Principaux</span>
+      </div>
+      <div class="body">
+        {% if movie.cast %}
+          <ul class="list">
+            {% for c in movie.cast|slice:":12" %}
+              <li>{{ c }}</li>
+            {% endfor %}
+          </ul>
+
+          {% if movie.cast|length > 12 %}
+            <details class="more">
+              <summary>Voir tout le casting</summary>
+              <div class="inner">
+                <ul class="list">
+                  {% for c in movie.cast|slice:"12:" %}
+                    <li>{{ c }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </details>
+          {% endif %}
+        {% else %}
+          <p class="muted">Aucun casting trouvé.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="head">
+        <h2>Titres alternatifs</h2>
+        <span class="pill">AKA</span>
+      </div>
+      <div class="body">
+        {% if movie.alt_titles %}
+          <ul class="list">
+            {% for t in movie.alt_titles|slice:":10" %}
+              <li>{{ t }}</li>
+            {% endfor %}
+          </ul>
+
+          {% if movie.alt_titles|length > 10 %}
+            <details class="more">
+              <summary>Voir tous les titres alternatifs</summary>
+              <div class="inner">
+                <ul class="list">
+                  {% for t in movie.alt_titles|slice:"10:" %}
+                    <li>{{ t }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </details>
+          {% endif %}
+        {% else %}
+          <p class="muted">—</p>
+        {% endif %}
+      </div>
+    </div>
+
+  </section>
 </div>
 
-<div class="mb-3">
-  <span class="fw-semibold">Genres :</span>
-  {% for g in movie.genres %}<span class="badge bg-secondary">{{ g }}</span>{% endfor %}
-</div>
-
-<h3>Réalisateurs</h3>
-<ul>
-  {% for d in movie.directors %}
-    <li>{{ d.name }}</li>
-  {% endfor %}
-</ul>
-
-<h3>Casting</h3>
-<ul>
-  {% for c in movie.cast %}
-    <li><b>{{ c.name }}</b> — {{ c.characters|join:", " }}</li>
-  {% endfor %}
-</ul>
-
-<h3>Scénaristes</h3>
-<ul>
-  {% for w in movie.writers %}
-    <li>{{ w.name }} <span class="text-muted">({{ w.category }})</span></li>
-  {% endfor %}
-</ul>
-
-<h3>Titres alternatifs</h3>
-<ul>
-  {% for t in movie.titles %}
-    <li>{{ t.region }} — {{ t.title }}</li>
-  {% endfor %}
-</ul>
+<script>
+  // rating -> progress (safe even if rating missing)
+  (function () {
+    document.querySelectorAll(".meter[data-rating]").forEach(function(meter){
+      var raw = meter.getAttribute("data-rating") || "0";
+      var r = parseFloat(raw);
+      if (!isFinite(r)) r = 0;
+      r = Math.max(0, Math.min(10, r));
+      var pct = (r / 10) * 100;
+      var bar = meter.querySelector("span");
+      if (bar) bar.style.width = pct.toFixed(1) + "%";
+    });
+  })();
+</script>
 {% endblock %}

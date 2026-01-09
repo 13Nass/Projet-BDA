@@ -1,53 +1,94 @@
-# movies/services/mongo_service.py
+# -*- coding: utf-8 -*-
+"""
+MongoDB service layer for CineExplorer.
+
+Attendus dans settings.py :
+- MONGO_URI
+- MONGO_DB_NAME (ou legacy MONGO_DB)
+
+Collections utilisées (typique) :
+- movies_complete
+"""
+
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from functools import lru_cache
+from typing import Any, Optional
+
 from django.conf import settings
 from pymongo import MongoClient
 
-_client: Optional[MongoClient] = None
+
+def _get_db_name() -> str:
+    name = getattr(settings, "MONGO_DB_NAME", None) or getattr(settings, "MONGO_DB", None)
+    if not name:
+        raise AttributeError("settings.MONGO_DB_NAME (ou settings.MONGO_DB) manquant")
+    return str(name)
 
 
-def _mongo_uri() -> str:
-    uri = getattr(settings, "MONGO_URI", None)
-    if not uri:
-        raise RuntimeError("MONGO_URI not configured in settings.py")
-    return str(uri)
+def _get_uri() -> str:
+    return getattr(settings, "MONGO_URI", None) or "mongodb://127.0.0.1:27017"
 
 
-def _mongo_db_name() -> str:
-    # Compat : certains mettent MONGO_DB_NAME, d'autres MONGO_DB
-    return str(getattr(settings, "MONGO_DB_NAME", None) or getattr(settings, "MONGO_DB", None) or "cineexplorer_flat")
+@lru_cache(maxsize=1)
+def _client() -> MongoClient:
+    # timeouts un peu larges pour éviter les faux timeouts
+    return MongoClient(
+        _get_uri(),
+        serverSelectionTimeoutMS=20000,
+        connectTimeoutMS=20000,
+        socketTimeoutMS=20000,
+    )
 
 
-def get_client() -> MongoClient:
-    global _client
-    if _client is None:
-        _client = MongoClient(_mongo_uri(), serverSelectionTimeoutMS=3000)
-    return _client
+def db():
+    return _client()[_get_db_name()]
 
 
-def get_db():
-    return get_client()[_mongo_db_name()]
+def hello_info() -> dict[str, Any]:
+    # juste une info simple (utile debug/rapport)
+    return {"db": _get_db_name(), "uri": _get_uri()}
 
 
-def list_collections():
-    return get_db().list_collection_names()
+def all_collection_counts(max_collections: int = 12) -> dict[str, int]:
+    d = db()
+    names = sorted(d.list_collection_names())
+    out: dict[str, int] = {}
+    for name in names[:max_collections]:
+        try:
+            out[name] = int(d[name].estimated_document_count())
+        except Exception:
+            out[name] = 0
+    return out
 
 
-def collection_count(coll_name: str) -> int:
-    return get_db()[coll_name].count_documents({})
+@lru_cache(maxsize=1)
+def _cached_movie_ids() -> list[str]:
+    d = db()
+    if "movies_complete" not in d.list_collection_names():
+        return []
+    # on ne récup que _id
+    cur = d["movies_complete"].find({}, {"_id": 1})
+    return [doc["_id"] for doc in cur]
 
 
-def all_collection_counts(limit: int = 20) -> Dict[str, int]:
-    colls = list_collections()[:limit]
-    return {c: collection_count(c) for c in colls}
+def movie_ids_if_small(max_docs: int = 5000) -> Optional[list[str]]:
+    """
+    Si la collection movies_complete est "petite", on renvoie la liste des ids
+    pour filtrer la liste SQLite et éviter les 404 sur le détail.
+    Sinon -> None (pas de filtre).
+    """
+    d = db()
+    if "movies_complete" not in d.list_collection_names():
+        return None
+    n = int(d["movies_complete"].estimated_document_count())
+    if n <= int(max_docs):
+        return _cached_movie_ids()
+    return None
 
 
-def hello_info() -> Dict[str, Any]:
-    # utile pour montrer primary/replica dans le rapport
-    return get_client().admin.command("hello")
-
-
-def get_movie_complete(movie_id: str, collection: str = "movies_complete") -> Optional[Dict[str, Any]]:
-    return get_db()[collection].find_one({"_id": movie_id})
+def get_movie_complete(movie_id: str) -> Optional[dict[str, Any]]:
+    d = db()
+    if "movies_complete" not in d.list_collection_names():
+        return None
+    return d["movies_complete"].find_one({"_id": str(movie_id)})

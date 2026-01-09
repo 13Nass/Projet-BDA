@@ -1,5 +1,56 @@
 {% extends "movies/base.html" %}
+{% block title %}Accueil — CinéExplorer{% endblock %}
+
 {% block content %}
-<h1>Accueil</h1>
-<p>OK home template chargé ✅</p>
+<div class="space-y-12 text-white px-10 py-10">
+
+  <!-- Section Top Films -->
+  <section>
+    <h1 class="text-4xl font-extrabold mb-6 text-white">🔥 Top Films</h1>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-6">
+      {% for m in top_movies %}
+        <a href="{% url 'movie_detail' m.movie_id %}" class="group relative block overflow-hidden rounded-2xl bg-white/5 hover:bg-white/10 transition">
+          <div class="aspect-[2/3] w-full overflow-hidden">
+            <img src="https://image.tmdb.org/t/p/w500/{{ m.movie_id }}.jpg"
+                 alt="{{ m.title }}"
+                 onerror="this.src='https://via.placeholder.com/300x450?text=No+Image';"
+                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+          </div>
+          <div class="p-3">
+            <p class="font-semibold text-sm truncate">{{ m.title }}</p>
+            {% if m.average_rating %}
+              <p class="text-xs text-gray-400">⭐ {{ m.average_rating }}</p>
+            {% endif %}
+          </div>
+        </a>
+      {% empty %}
+        <p class="text-gray-400">Aucun film trouvé.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Section Films récents -->
+  <section>
+    <h2 class="text-3xl font-extrabold mb-6 text-white">🎞️ Films récents</h2>
+    <div class="flex space-x-6 overflow-x-auto pb-4 hide-scrollbar">
+      {% for m in recent_movies %}
+        <a href="{% url 'movie_detail' m.movie_id %}" class="flex-shrink-0 w-40 group">
+          <div class="aspect-[2/3] rounded-2xl overflow-hidden bg-white/5 hover:bg-white/10 transition">
+            <img src="https://image.tmdb.org/t/p/w300/{{ m.movie_id }}.jpg"
+                 alt="{{ m.title }}"
+                 onerror="this.src='https://via.placeholder.com/300x450?text=No+Image';"
+                 class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110" />
+          </div>
+          <p class="mt-2 text-sm truncate">{{ m.title }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
+</div>
+
+<style>
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 {% endblock %}
