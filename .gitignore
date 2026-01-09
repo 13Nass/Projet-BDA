@@ -8,4 +8,5 @@ scripts/phase3_mongodb/pycache/node_modules/
 *.zip
 *.db
 data/
-/movies/__pycache__
+./movies/__pycache__
+movies/__pycache__/views.cpython-314.pyc
