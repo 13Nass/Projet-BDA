@@ -1,15 +1,102 @@
-data/mongo
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+.directory
+
+# MongoDB data
+data/mongo/
 data/imdb.db
-venv
-scripts/phase1_mongodb/pycache/
-scripts/phase2_mongodb/pycache/
-scripts/phase3_mongodb/pycache/node_modules/
-.venv/
-*.zip
-*.db
 data/
-./movies/__pycache__
-movies/__pycache__/views.cpython-314.pyc
-movies/services/__pycache__/sqlite_service.cpython-314.pyc
-movies/services/__pycache__/sqlite_service.cpython-314.pyc
-movies/__pycache__/views.cpython-314.pyc
+
+# Node (if using frontend tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# IDE specific
+.pylintrc
+.mypy.ini
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+
+# OS specific
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
