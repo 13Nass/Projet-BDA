@@ -1,64 +1,68 @@
 {% extends "movies/base.html" %}
 {% block content %}
 <style>
-  .search-page{
-    max-width:1200px;
-    margin:30px auto;
-    padding:0 18px;
-  }
-  h1{
-    font-size:32px;
-    color:rgba(255,255,255,.92);
-    margin-bottom:20px;
-  }
-  .results-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-    gap:22px;
-  }
-  .card{
-    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:22px;
-    padding:16px;
-    transition:transform .2s ease, box-shadow .2s ease;
-    box-shadow:0 10px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  .card:hover{
-    transform:translateY(-6px);
-    box-shadow:0 18px 40px rgba(0,0,0,.45);
-  }
-  .card a{
-    color:rgba(255,255,255,.92);
-    text-decoration:none;
-    font-weight:600;
-    display:block;
-    font-size:17px;
-    margin-bottom:4px;
-  }
-  .card small{
-    color:rgba(255,255,255,.65);
-    font-size:13px;
-  }
+  .search-wrap{max-width:1100px;margin:0 auto;padding:28px 18px}
+  .search-title{font-size:28px;font-weight:800;margin:8px 0 18px}
+  .muted{opacity:.8}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .card{border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);border-radius:16px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .card a{color:inherit;text-decoration:none;display:block;padding:14px}
+  .card:hover{transform:translateY(-2px);transition:.15s ease;box-shadow:0 16px 42px rgba(0,0,0,.35)}
+  .h{font-weight:800;font-size:16px;line-height:1.2}
+  .meta{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+  .pill{font-size:12px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10)}
+  .section{margin-top:24px}
 </style>
 
-<div class="search-page">
-  <h1>Résultats de recherche</h1>
-  {% if movies %}
-    <div class="results-grid">
-      {% for m in movies %}
-        <div class="card">
-          <a href="{% url 'movie_detail' m.id|default:m.pk|default:m._id %}">
-            {{ m.primary_title|default:m.original_title }}
-          </a>
-          <small>
-            {% if m.start_year %}({{ m.start_year }}){% endif %}
-          </small>
-        </div>
-      {% endfor %}
-    </div>
-  {% else %}
-    <p>Aucun film trouvé.</p>
+<div class="search-wrap">
+  <div class="search-title">Résultats{% if q %} pour “{{ q }}”{% endif %}</div>
+  {% if not q %}
+    <div class="muted">Tape un film ou une personne dans la barre de recherche.</div>
   {% endif %}
+
+  <div class="section">
+    <h2>🎬 Films <span class="muted">({{ movies|length }})</span></h2>
+    {% if movies %}
+      <div class="grid">
+        {% for m in movies %}
+          <div class="card">
+            <a href="{% url 'movie_detail' m.movie_id %}">
+              <div class="h">{{ m.primary_title|default:"Sans titre" }}</div>
+              <div class="meta">
+                {% if m.start_year %}<span class="pill">📅 {{ m.start_year }}</span>{% endif %}
+                {% if m.rating %}<span class="pill">⭐ {{ m.rating }}</span>{% endif %}
+                {% if m.votes %}<span class="pill">👥 {{ m.votes }}</span>{% endif %}
+              </div>
+              {% if m.genres %}<div class="muted" style="margin-top:10px">{{ m.genres }}</div>{% endif %}
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      {% if q %}<div class="muted">Aucun film trouvé.</div>{% endif %}
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2>🧑 Personnes <span class="muted">({{ persons|length }})</span></h2>
+    {% if persons %}
+      <div class="grid">
+        {% for p in persons %}
+          <div class="card">
+            <a href="#">
+              <div class="h">{{ p.name }}</div>
+              <div class="meta">
+                {% if p.birth_year %}<span class="pill">🎂 {{ p.birth_year }}</span>{% endif %}
+                {% if p.death_year %}<span class="pill">✝ {{ p.death_year }}</span>{% endif %}
+                <span class="pill">ID: {{ p.person_id }}</span>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      {% if q %}<div class="muted">Aucune personne trouvée.</div>{% endif %}
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

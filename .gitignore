@@ -10,3 +10,6 @@ scripts/phase3_mongodb/pycache/node_modules/
 data/
 ./movies/__pycache__
 movies/__pycache__/views.cpython-314.pyc
+movies/services/__pycache__/sqlite_service.cpython-314.pyc
+movies/services/__pycache__/sqlite_service.cpython-314.pyc
+movies/__pycache__/views.cpython-314.pyc

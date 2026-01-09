@@ -1,0 +1,8 @@
+# Patch for movies/templates/movies/movie_detail.html
+# Replace the "ID" pill line:
+#   <span class="pill">ID : <strong>{{ movie.id|default:movie.pk|default:"—" }}</strong></span>
+# with:
+#   <span class="pill">ID : <strong>{{ movie.movie_id|default:movie.id|default:"—" }}</strong></span>
+#
+# IMPORTANT: If you still have occurrences of "._id" anywhere in templates (search/home/list),
+# replace them with ".id" or ".movie_id" because Django forbids variables starting with "_".
